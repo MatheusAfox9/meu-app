@@ -1,0 +1,58 @@
+services:
+  # Serviço da API Flask
+  api-external:
+    build:
+      context: ./api-external  # Caminho para a pasta onde o Dockerfile está
+      dockerfile: Dockerfile    # O arquivo Dockerfile está dentro dessa pasta
+    container_name: meu-app-api-external-1
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db  # O serviço Flask depende do banco de dados
+    environment:
+      - DATABASE_URL=postgres://usuario:senha@db:5432/meubanco
+    networks:
+      - meu-app-network
+
+  # Serviço do Frontend
+  frontend:
+    build:
+      context: ./frontend
+    container_name: meu-app-frontend-1
+    ports:
+      - "80:80"
+    networks:
+      - meu-app-network
+
+  # Serviço do Backend
+  backend:
+    build:
+      context: ./backend
+    container_name: meu-app-backend-1
+    ports:
+      - "3000:3000"
+    networks:
+      - meu-app-network
+
+  # Serviço do PostgreSQL
+  db:
+    image: postgres:13  # Usando a imagem oficial do PostgreSQL
+    container_name: meu-app-db-1
+    environment:
+      POSTGRES_USER: usuario   # Nome de usuário para o banco
+      POSTGRES_PASSWORD: senha # Senha para o banco
+      POSTGRES_DB: meubanco    # Nome do banco de dados
+    ports:
+      - "5432:5432"  # A porta padrão do PostgreSQL
+    volumes:
+      - db_data:/var/lib/postgresql/data  # Persistência dos dados
+    networks:
+      - meu-app-network
+
+networks:
+  meu-app-network:
+    driver: bridge
+
+volumes:
+  db_data:
+    driver: local
